@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Books Library</title>
+<style>
+:root{--navy:#1d3557;--blue:#1677f8;--pale:#eef6ff;--line:#dbe7f7;--ink:#20334f;--muted:#64748b;--red:#ef4444}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#f7faff}
+header{height:66px;background:var(--navy);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100% - 1180px)/2));box-shadow:0 3px 14px #12233a18}
+.brand{font-size:21px;font-weight:750;display:flex;gap:12px;align-items:center}.brand span{font-size:28px}header small{opacity:.85}
+main{max-width:1180px;margin:24px auto;padding:0 20px}.hero{padding:28px 30px;border-radius:14px;background:linear-gradient(110deg,#edf6ff,#f7fbff);border:1px solid #e4effd;display:flex;justify-content:space-between;align-items:center;gap:20px}.hero h1{font-size:27px;margin:0 0 8px}.hero p{color:#526b8c;margin:0}.hero .art{font-size:55px}
+.toolbar,.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:18px}.toolbar{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:12px;align-items:end}.field label{display:block;font-size:12px;font-weight:650;margin:0 0 6px;color:#4c607b}.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid #cfdef0;border-radius:8px;background:white;color:var(--ink);font:inherit;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #1677f81a}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.panel h2{font-size:18px;margin:0}.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:650;cursor:pointer;font:inherit;font-size:14px;transition:.15s}.btn:hover{filter:brightness(.96);transform:translateY(-1px)}.primary{background:var(--blue);color:white}.soft{background:#f0f6ff;color:#26415f;border:1px solid var(--line)}.danger{background:#fff0f0;color:#d72f3a;border:1px solid #ffd2d2}.table-wrap{overflow:auto;border:1px solid #e3ecf8;border-radius:9px}table{border-collapse:collapse;width:100%;min-width:850px;font-size:13px}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #e7eef8}th{background:#f2f7fd;color:#435977;font-weight:700}tr:last-child td{border-bottom:0}tbody tr:hover{background:#fbfdff}.stars{color:#f5a623;letter-spacing:1px;white-space:nowrap}.actions{display:flex;gap:7px}.actions .btn{padding:7px 10px}.empty{text-align:center;padding:36px;color:var(--muted)}.below{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:13px;padding-top:14px}.status{font-size:13px;margin-top:12px;color:var(--muted)}.status.error{color:#c62828}.status.ok{color:#167548}
+.modal-backdrop{position:fixed;inset:0;background:#12233a77;display:none;align-items:center;justify-content:center;padding:18px;z-index:5}.modal-backdrop.open{display:flex}.modal{width:min(650px,100%);background:white;border-radius:15px;padding:24px;box-shadow:0 22px 70px #10243c38;max-height:94vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.modal-head h2{margin:0;font-size:21px}.close{background:transparent;border:0;font-size:25px;cursor:pointer;color:#65758b}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field.full{grid-column:1/-1}.field textarea{resize:vertical;min-height:90px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.required{color:#e33}.footer{text-align:center;color:#8192a9;font-size:12px;padding:25px}
+.rating-cell{white-space:nowrap;min-width:120px}
+@media(max-width:760px){.toolbar{grid-template-columns:1fr 1fr}.toolbar .search{grid-column:1/-1}.hero h1{font-size:22px}.hero .art{font-size:38px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.panel-head{align-items:flex-start}.below{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div class="brand"><span>📘</span> Books Library</div><small>FastAPI + SQLAlchemy</small></header>
+<main>
+  <section class="hero">
+    <div><h1>Welcome to the Books Library</h1><p>Manage your collection. View, add, update, and delete books.</p></div>
+    <div class="art" aria-hidden="true">📚</div>
+  </section>
+  <section class="toolbar">
+    <div class="field search"><label for="search">Search</label><input id="search" placeholder="Search by title or author…"></div>
+    <div class="field"><label for="ratingFilter">Filter by rating</label><select id="ratingFilter"><option value="">All ratings</option><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></div>
+    <div class="field"><label for="yearFilter">Filter by year</label><select id="yearFilter"><option value="">All years</option></select></div>
+    <button class="btn soft" id="clearFilters">Clear filters</button>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Books <span id="count" style="color:#8192a9;font-weight:500;font-size:14px"></span></h2><button class="btn primary" id="addBtn">＋ Add New Book</button></div>
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Description</th><th>Rating</th><th>Published Year</th><th>Actions</th></tr></thead><tbody id="booksBody"><tr><td colspan="7" class="empty">Loading books…</td></tr></tbody></table></div>
+    <div class="below"><span id="showing">Connecting to your API…</span><button class="btn soft" id="refreshBtn">↻ Refresh</button></div>
+    <div id="status" class="status" role="status"></div>
+  </section>
+</main>
+<div class="footer">Books API Frontend · Connected to your local FastAPI app</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head"><h2 id="modalTitle">Add New Book</h2><button class="close" id="closeModal" aria-label="Close">×</button></div>
+    <form id="bookForm">
+      <div class="form-grid">
+        <div class="field"><label for="title">Title <span class="required">*</span></label><input id="title" required minlength="1" maxlength="100" placeholder="Enter book title"></div>
+        <div class="field"><label for="author">Author <span class="required">*</span></label><input id="author" required minlength="2" maxlength="50" placeholder="Enter author name"></div>
+        <div class="field full"><label for="description">Description <span class="required">*</span></label><textarea id="description" required minlength="5" maxlength="500" placeholder="A short description of the book"></textarea></div>
+        <div class="field"><label for="rating">Rating <span class="required">*</span></label><select id="rating" required><option value="">Select rating</option><option value="1">1 — Poor</option><option value="2">2 — Fair</option><option value="3">3 — Good</option><option value="4">4 — Very good</option><option value="5">5 — Excellent</option></select></div>
+        <div class="field"><label for="published_year">Published year <span class="required">*</span></label><input id="published_year" type="number" required min="1950" max="2026" placeholder="e.g. 2025"></div>
+      </div>
+      <div class="modal-actions"><button type="button" class="btn soft" id="cancelBtn">Cancel</button><button type="submit" class="btn primary" id="saveBtn">Save Book</button></div>
+      <div id="formStatus" class="status" role="status"></div>
+    </form>
+  </section>
+</div>
+<script>
+/*
+  Change API_BASE if your FastAPI server runs on another address.
+  These endpoint paths match the routes from the beginner SQLAlchemy project:
+  GET/POST /books, PUT /books/updated/{id}, DELETE /books/deleted/{id}.
+*/
+const API_BASE = "http://127.0.0.1:8000";
+const ROUTES = { list: "/books", create: "/books", update: id => `/books/${id}`, remove: id => `/books/${id}` };
+let books = [];
+let editingId = null;
+const $ = id => document.getElementById(id);
+const statusEl = $("status");
+function setStatus(message, type="") { statusEl.textContent = message; statusEl.className = "status " + type; }
+function valueOf(book, key) { return book[key] ?? book[key.toLowerCase()] ?? ""; }
+function normalizeBook(book) {
+  return {id: book.id, title: book.title ?? "", author: book.author ?? "", description: book.description ?? "", rating: Number(book.rating ?? 0), published_year: Number(book.published_year ?? book.publishedYear ?? 0)};
+}
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+}
+async function api(path, options={}) {
+  const response = await fetch(API_BASE + path, { ...options, headers: { "Content-Type":"application/json", ...(options.headers || {}) } });
+  const raw = await response.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = raw; }
+  if (!response.ok) {
+    const detail = data && typeof data === "object" ? (data.detail || data.message) : data;
+    throw new Error(typeof detail === "string" ? detail : `Request failed (${response.status})`);
+  }
+  return data;
+}
+function fillYearFilter() {
+  const select = $("yearFilter"), current = select.value;
+  const years = [...new Set(books.map(b => b.published_year).filter(Boolean))].sort((a,b)=>b-a);
+  select.innerHTML = '<option value="">All years</option>' + years.map(y=>`<option value="${y}">${y}</option>`).join("");
+  select.value = years.includes(Number(current)) ? current : "";
+}
+function renderBooks() {
+  const search = $("search").value.trim().toLowerCase();
+  const rating = $("ratingFilter").value;
+  const year = $("yearFilter").value;
+  const filtered = books.filter(b =>
+    (`${b.title} ${b.author}`.toLowerCase().includes(search)) &&
+    (!rating || b.rating === Number(rating)) &&
+    (!year || b.published_year === Number(year))
+  );
+  $("count").textContent = `(${filtered.length})`;
+  $("showing").textContent = `Showing ${filtered.length} of ${books.length} books`;
+  const body = $("booksBody");
+  if (!filtered.length) { body.innerHTML = '<tr><td colspan="7" class="empty">No books match your filters.</td></tr>'; return; }
+  body.innerHTML = filtered.map(b => `<tr>
+    <td>${escapeHtml(b.id)}</td><td><strong>${escapeHtml(b.title)}</strong></td><td>${escapeHtml(b.author)}</td>
+    <td>${escapeHtml(b.description)}</td><td class="rating-cell"><span class="stars">${"★".repeat(Math.max(0,Math.min(5,b.rating)))}${"☆".repeat(Math.max(0,5-b.rating))}</span> <span style="margin-left:5px">${escapeHtml(b.rating)}</span></td>
+    <td>${escapeHtml(b.published_year)}</td><td><div class="actions"><button class="btn primary" data-edit="${escapeHtml(b.id)}">Edit</button><button class="btn danger" data-delete="${escapeHtml(b.id)}">Delete</button></div></td>
+  </tr>`).join("");
+}
+async function loadBooks() {
+  $("booksBody").innerHTML = '<tr><td colspan="7" class="empty">Loading books…</td></tr>';
+  try {
+    const data = await api(ROUTES.list);
+    if (!Array.isArray(data)) throw new Error("GET /books did not return a JSON list. Check your API response.");
+    books = data.map(normalizeBook);
+    fillYearFilter(); renderBooks();
+    setStatus("Connected to FastAPI. Your table is loaded from the database.", "ok");
+  } catch (error) {
+    $("booksBody").innerHTML = '<tr><td colspan="7" class="empty">Could not load books. Start your FastAPI server and check the API/CORS setup.</td></tr>';
+    $("showing").textContent = "API connection failed";
+    setStatus(error.message + " — " + API_BASE, "error");
+  }
+}
+function openModal(book=null) {
+  editingId = book ? book.id : null;
+  $("modalTitle").textContent = book ? `Edit Book #${book.id}` : "Add New Book";
+  $("saveBtn").textContent = book ? "Save Changes" : "Save Book";
+  $("bookForm").reset(); $("formStatus").textContent = "";
+  if (book) {
+    $("title").value = book.title; $("author").value = book.author; $("description").value = book.description;
+    $("rating").value = String(book.rating); $("published_year").value = book.published_year;
+  }
+  $("modalBackdrop").classList.add("open"); $("title").focus();
+}
+function closeModal() { $("modalBackdrop").classList.remove("open"); editingId = null; }
+$("addBtn").addEventListener("click",()=>openModal());
+$("closeModal").addEventListener("click",closeModal); $("cancelBtn").addEventListener("click",closeModal);
+$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+$("search").addEventListener("input",renderBooks);
+$("ratingFilter").addEventListener("change",renderBooks); $("yearFilter").addEventListener("change",renderBooks);
+$("clearFilters").addEventListener("click",()=>{$("search").value="";$("ratingFilter").value="";$("yearFilter").value="";renderBooks();});
+$("refreshBtn").addEventListener("click",loadBooks);
+$("booksBody").addEventListener("click",async e=>{
+  const edit=e.target.closest("[data-edit]"), del=e.target.closest("[data-delete]");
+  if(edit){const book=books.find(b=>String(b.id)===edit.dataset.edit);if(book)openModal(book);}
+  if(del){
+    const id=del.dataset.delete, book=books.find(b=>String(b.id)===id);
+    if(!confirm(`Delete "${book?.title || "this book"}" (ID ${id})?`))return;
+    try{await api(ROUTES.remove(id),{method:"DELETE"});setStatus("Book deleted successfully.","ok");await loadBooks();}
+    catch(error){setStatus("Could not delete book: "+error.message,"error");}
+  }
+});
+$("bookForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const payload={title:$("title").value.trim(),author:$("author").value.trim(),description:$("description").value.trim(),rating:Number($("rating").value),published_year:Number($("published_year").value)};
+  if(!payload.rating){$("formStatus").textContent="Please select a rating.";return;}
+  $("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";$("formStatus").textContent="";
+  try{
+    if(editingId!==null) await api(ROUTES.update(editingId),{method:"PUT",body:JSON.stringify(payload)});
+    else await api(ROUTES.create,{method:"POST",body:JSON.stringify(payload)});
+    closeModal();setStatus(editingId!==null?"Book updated successfully.":"Book created successfully.","ok");await loadBooks();
+  }catch(error){$("formStatus").textContent=error.message;$("formStatus").className="status error";}
+  finally{$("saveBtn").disabled=false;$("saveBtn").textContent=editingId!==null?"Save Changes":"Save Book";}
+});
+loadBooks();
+</script>
+</body>
+</html>
