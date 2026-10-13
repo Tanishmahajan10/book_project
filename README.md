@@ -34,6 +34,19 @@ books_project/
 ├── requirements.txt
 └── README.md
 ```
+## Requirements
+
+- Python 3.9 or newer
+- pip
+
+Python packages:
+
+| Package             | Purpose                         |
+|---------------------|---------------------------------|
+| `fastapi`           | Web framework for the REST API  |
+| `uvicorn`           | Server that runs the app        |
+| `sqlalchemy`        | ORM for database access         |
+| `pydantic v2`       | Request data validation         |
 
 ## Setup
 
@@ -118,6 +131,3 @@ Table: `booksList`
 
 Note: `create_all()` does not change an existing table. If you edit a constraint, delete `books.db` and restart the server.
 
-## Author
-
-YOUR NAME
